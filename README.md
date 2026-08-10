@@ -139,3 +139,4 @@ tokens van en un `.env` local. En el repo solo `.env.example` con los nombres.
 2. Importar los workflows de `/n8n` en la instancia de n8n.
 3. Copiar `.env.example` a `.env` y rellenar con los valores reales (pedir al equipo).
 4. Credencial Postgres de n8n: usuario `n8n_hosteleria` sobre la bd `hosteleria`.
+# risesense-nfc-bares
