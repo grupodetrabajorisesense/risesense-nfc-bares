@@ -34,11 +34,13 @@ GET /bar/carta?token=DEMO1234
     "logo_url": null,
     "color_primario": "#c1272d"
   },
-  "mesa": {
-    "id": "1ea784e7-9a4b-4a52-a64f-6ba2173dfa41",
-    "numero": "5",
-    "zona": "terraza"
-  },
+  "mesas": [
+    {
+      "id": "1ea784e7-9a4b-4a52-a64f-6ba2173dfa41",
+      "numero": "5",
+      "zona": "terraza"
+    }
+  ],
   "categorias": [
     {
       "id": "9b2636db-0ff9-40e3-841b-e1ad52dab3f6",
@@ -62,7 +64,11 @@ GET /bar/carta?token=DEMO1234
 - Si el token no existe o la mesa/bar está inactivo → la función devuelve `null`.
   El frontend interpreta `null` como "Mesa no encontrada".
 - Header CORS `Access-Control-Allow-Origin: *` obligatorio (web en otro dominio).
-
+- **Cambio (QR único por bar):** el `token` ahora identifica al establecimiento
+  (`establecimientos.token`), no a una mesa individual. El cliente elige su mesa
+  manualmente en el frontend a partir del array `mesas[]`. El campo `mesa` (objeto
+  único) queda obsoleto; el frontend mantiene compatibilidad hacia atrás con el
+  formato viejo, pero no se debe generar más.
 Función SQL: `hosteleria.get_carta(p_token text) RETURNS jsonb`
 
 ---
@@ -76,6 +82,7 @@ de Stripe. Co-propiedad Dev 1 (crear_pedido) + Dev 2 (Stripe).
 ```json
 {
   "token": "DEMO1234",
+  "mesa_id": "1ea784e7-9a4b-4a52-a64f-6ba2173dfa41",
   "items": [
     { "producto_id": "9c2f4797-8a68-4031-9b08-471cae455931", "cantidad": 2 },
     { "producto_id": "39fbd653-4e39-45e1-81cf-e8735a116940", "cantidad": 1 }
@@ -87,7 +94,10 @@ de Stripe. Co-propiedad Dev 1 (crear_pedido) + Dev 2 (Stripe).
 - `metodo_pago`: `"online"` | `"efectivo"` | `"caja"`
 - `notas`: opcional
 - El cliente **nunca** manda precios ni total. Solo producto + cantidad.
-
+- mesa_id: obligatorio. UUID de la mesa elegida (viene de `mesas[]` de `GET /bar/carta`).
+  El backend valida que pertenece al mismo establecimiento del token y está activa.
+- mesa_numero: opcional, informativo. Si el frontend lo manda, n8n puede incluirlo en
+  logs, pero no se pasa a `crear_pedido` (la mesa se resuelve por mesa_id).
 **Response 200 — método `online`**
 ```json
 {
@@ -120,8 +130,12 @@ No hay pago online: el pedido nace ya en `nuevo` y el camarero cobra en persona.
 el pedido no tiene líneas válidas. n8n lo traduce a error.
 
 Función SQL:
-`hosteleria.crear_pedido(p_token text, p_items jsonb, p_metodo_pago text, p_notas text) RETURNS jsonb`
+`hosteleria.crear_pedido(p_token text, p_items jsonb, p_mesa_id uuid, p_metodo_pago text DEFAULT 'online', p_notas text DEFAULT NULL) RETURNS jsonb`
 → devuelve `{ pedido_id, total_centimos, moneda, metodo_pago, stripe_account_id }`
+
+**Nota de orden de parámetros:** `p_mesa_id` va en tercera posición (entre `p_items` y
+`p_metodo_pago`). n8n debe llamar a la función con parámetros nombrados o respetar
+exactamente este orden.
 
 ---
 
