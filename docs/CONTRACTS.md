@@ -176,7 +176,7 @@ en bucle.
 
 ## 4. Panel del bar 🚧
 
-### GET /bar/pedidos-activos 🚧
+### GET /bar/pedidos-activos 🚧✅
 Lo consume el panel por polling. Dueño: Dev 1 (función) + Dev 3 (panel).
 
 **Request**
@@ -185,6 +185,8 @@ GET /bar/pedidos-activos?establecimiento_id=…
 ```
 > Nota de seguridad: el panel va detrás de login. No exponer esto sin autenticar, o
 > cualquiera lista los pedidos de un bar. Definir auth antes de publicarlo.
+> ⚠️ **Sin auth todavía (pendiente, ver DECISIONS.md).** Implementado y funcional para
+> desarrollo, pero no debe exponerse en producción hasta resolver el login del panel.
 
 **Response 200**
 ```json
@@ -209,7 +211,7 @@ GET /bar/pedidos-activos?establecimiento_id=…
 
 Función SQL: `hosteleria.get_pedidos_activos(p_establecimiento_id uuid) RETURNS jsonb`
 
-### POST /bar/pedido-estado 🚧
+### POST /bar/pedido-estado 🚧✅
 Botones del camarero (en preparación / servido / cancelado).
 
 **Request**
