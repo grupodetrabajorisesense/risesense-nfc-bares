@@ -1,0 +1,190 @@
+{
+  "name": "bar-web-api",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.carta }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        656,
+        128
+      ],
+      "id": "09487c97-886c-484b-92c7-c261edeb7daa",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT hosteleria.get_carta($1) AS carta;",
+        "options": {
+          "queryReplacement": "=={{ $json.query.token }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "d56d157a-466c-40d3-a920-fe4b81e75b9a",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "H9tts90quNJGsgd1",
+          "name": "Hosteleria_NFC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "bar/carta",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "932f02ed-03ca-4add-9a23-b2962115357f",
+      "name": "Webhook",
+      "webhookId": "9957705d-7b9f-44f4-86e6-efa2f4420489"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "64500fa1-6e6b-4527-b9e7-ded9db402e96",
+              "leftValue": "={{ $json.carta }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "1146cdeb-2617-4225-9421-574686558e97",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": \"enlace no válido\" } }}",
+        "options": {
+          "responseCode": 404,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        656,
+        -176
+      ],
+      "id": "95351479-d687-416c-bf9d-fe515df43edc",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "108a9f9a-f117-482f-8626-6c4b97ffcaf1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9eaa5babfc52f255436bf117de7c7c4d7bf44683f75046103f6d0cbd55799561"
+  },
+  "id": "KmLMCNjOpiVKzNYg",
+  "tags": []
+}
