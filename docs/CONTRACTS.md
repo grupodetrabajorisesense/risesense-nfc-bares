@@ -91,13 +91,22 @@ de Stripe. Co-propiedad Dev 1 (crear_pedido) + Dev 2 (Stripe).
   "notas": "sin hielo"
 }
 ```
-- `metodo_pago`: `"online"` | `"efectivo"` | `"caja"`
+- `metodo_pago`: `"online"` | `"caja"`
+  (`"efectivo"` queda soportado por la función SQL por compatibilidad, pero el frontend
+  ya no lo usa: se fusionó con `"caja"` — ambos significan "pago no online, cobra el camarero").
 - `notas`: opcional
 - El cliente **nunca** manda precios ni total. Solo producto + cantidad.
 - mesa_id: obligatorio. UUID de la mesa elegida (viene de `mesas[]` de `GET /bar/carta`).
   El backend valida que pertenece al mismo establecimiento del token y está activa.
 - mesa_numero: opcional, informativo. Si el frontend lo manda, n8n puede incluirlo en
   logs, pero no se pasa a `crear_pedido` (la mesa se resuelve por mesa_id).
+- **Decisión (21/08/2026, Dev 1 + Dev 3):** se evaluó permitir `mesa_id: null` con
+  entrada manual de mesa como fallback si `mesas[]` llega vacío, y se descartó. Con el
+  flujo real de alta de mesas (siempre dadas de alta antes de publicar el QR del bar),
+  no hay caso de negocio que lo justifique. Si `mesas[]` llega vacío, el frontend
+  muestra un error ("no hay mesas disponibles, avisa al camarero") y no permite
+  continuar el pedido. `mesa_id` es y seguirá siendo obligatorio; `crear_pedido` no
+  necesita soportar `NULL`.
 **Response 200 — método `online`**
 ```json
 {
