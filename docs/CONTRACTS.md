@@ -34,11 +34,13 @@ GET /bar/carta?token=DEMO1234
     "logo_url": null,
     "color_primario": "#c1272d"
   },
-  "mesa": {
-    "id": "1ea784e7-9a4b-4a52-a64f-6ba2173dfa41",
-    "numero": "5",
-    "zona": "terraza"
-  },
+  "mesas": [
+    {
+      "id": "1ea784e7-9a4b-4a52-a64f-6ba2173dfa41",
+      "numero": "5",
+      "zona": "terraza"
+    }
+  ],
   "categorias": [
     {
       "id": "9b2636db-0ff9-40e3-841b-e1ad52dab3f6",
@@ -62,7 +64,11 @@ GET /bar/carta?token=DEMO1234
 - Si el token no existe o la mesa/bar está inactivo → la función devuelve `null`.
   El frontend interpreta `null` como "Mesa no encontrada".
 - Header CORS `Access-Control-Allow-Origin: *` obligatorio (web en otro dominio).
-
+- **Cambio (QR único por bar):** el `token` ahora identifica al establecimiento
+  (`establecimientos.token`), no a una mesa individual. El cliente elige su mesa
+  manualmente en el frontend a partir del array `mesas[]`. El campo `mesa` (objeto
+  único) queda obsoleto; el frontend mantiene compatibilidad hacia atrás con el
+  formato viejo, pero no se debe generar más.
 Función SQL: `hosteleria.get_carta(p_token text) RETURNS jsonb`
 
 ---
@@ -76,6 +82,7 @@ de Stripe. Co-propiedad Dev 1 (crear_pedido) + Dev 2 (Stripe).
 ```json
 {
   "token": "DEMO1234",
+  "mesa_id": "1ea784e7-9a4b-4a52-a64f-6ba2173dfa41",
   "items": [
     { "producto_id": "9c2f4797-8a68-4031-9b08-471cae455931", "cantidad": 2 },
     { "producto_id": "39fbd653-4e39-45e1-81cf-e8735a116940", "cantidad": 1 }
@@ -84,14 +91,27 @@ de Stripe. Co-propiedad Dev 1 (crear_pedido) + Dev 2 (Stripe).
   "notas": "sin hielo"
 }
 ```
-- `metodo_pago`: `"online"` | `"efectivo"` | `"caja"`
+- `metodo_pago`: `"online"` | `"caja"`
+  (`"efectivo"` queda soportado por la función SQL por compatibilidad, pero el frontend
+  ya no lo usa: se fusionó con `"caja"` — ambos significan "pago no online, cobra el camarero").
 - `notas`: opcional
 - El cliente **nunca** manda precios ni total. Solo producto + cantidad.
-
+- mesa_id: obligatorio. UUID de la mesa elegida (viene de `mesas[]` de `GET /bar/carta`).
+  El backend valida que pertenece al mismo establecimiento del token y está activa.
+- mesa_numero: opcional, informativo. Si el frontend lo manda, n8n puede incluirlo en
+  logs, pero no se pasa a `crear_pedido` (la mesa se resuelve por mesa_id).
+- **Decisión (21/08/2026, Dev 1 + Dev 3):** se evaluó permitir `mesa_id: null` con
+  entrada manual de mesa como fallback si `mesas[]` llega vacío, y se descartó. Con el
+  flujo real de alta de mesas (siempre dadas de alta antes de publicar el QR del bar),
+  no hay caso de negocio que lo justifique. Si `mesas[]` llega vacío, el frontend
+  muestra un error ("no hay mesas disponibles, avisa al camarero") y no permite
+  continuar el pedido. `mesa_id` es y seguirá siendo obligatorio; `crear_pedido` no
+  necesita soportar `NULL`.
 **Response 200 — método `online`**
 ```json
 {
   "pedido_id": "…",
+  "numero_pedido": 23,
   "total_centimos": 560,
   "moneda": "EUR",
   "client_secret": "pi_3ABC…_secret_XYZ",
@@ -105,6 +125,7 @@ El frontend usa `client_secret` + `stripe_account_id` para montar el Payment Ele
 ```json
 {
   "pedido_id": "…",
+  "numero_pedido": 23,
   "total_centimos": 560,
   "moneda": "EUR",
   "estado": "nuevo"
@@ -120,9 +141,14 @@ No hay pago online: el pedido nace ya en `nuevo` y el camarero cobra en persona.
 el pedido no tiene líneas válidas. n8n lo traduce a error.
 
 Función SQL:
-`hosteleria.crear_pedido(p_token text, p_items jsonb, p_metodo_pago text, p_notas text) RETURNS jsonb`
+`hosteleria.crear_pedido(p_token text, p_items jsonb, p_mesa_id uuid, p_metodo_pago text DEFAULT 'online', p_notas text DEFAULT NULL) RETURNS jsonb`
 → devuelve `{ pedido_id, total_centimos, moneda, metodo_pago, stripe_account_id }`
 
+**Nota de orden de parámetros:** `p_mesa_id` va en tercera posición (entre `p_items` y
+`p_metodo_pago`). n8n debe llamar a la función con parámetros nombrados o respetar
+exactamente este orden.
+- `numero_pedido`: correlativo legible por establecimiento, reiniciado cada día
+  (ej. "Pedido #23" en el ticket). No confundir con `pedido_id` (UUID interno).
 ---
 
 ## 3. POST /stripe/webhook 🚧
@@ -162,7 +188,7 @@ en bucle.
 
 ## 4. Panel del bar 🚧
 
-### GET /bar/pedidos-activos 🚧
+### GET /bar/pedidos-activos 🚧✅
 Lo consume el panel por polling. Dueño: Dev 1 (función) + Dev 3 (panel).
 
 **Request**
@@ -171,6 +197,8 @@ GET /bar/pedidos-activos?establecimiento_id=…
 ```
 > Nota de seguridad: el panel va detrás de login. No exponer esto sin autenticar, o
 > cualquiera lista los pedidos de un bar. Definir auth antes de publicarlo.
+> ⚠️ **Sin auth todavía (pendiente, ver DECISIONS.md).** Implementado y funcional para
+> desarrollo, pero no debe exponerse en producción hasta resolver el login del panel.
 
 **Response 200**
 ```json
@@ -178,6 +206,7 @@ GET /bar/pedidos-activos?establecimiento_id=…
   "pedidos": [
     {
       "pedido_id": "…",
+      "numero_pedido": 23,
       "mesa_numero": "5",
       "estado": "nuevo",
       "pagado": true,
@@ -195,7 +224,7 @@ GET /bar/pedidos-activos?establecimiento_id=…
 
 Función SQL: `hosteleria.get_pedidos_activos(p_establecimiento_id uuid) RETURNS jsonb`
 
-### POST /bar/pedido-estado 🚧
+### POST /bar/pedido-estado 🚧✅
 Botones del camarero (en preparación / servido / cancelado).
 
 **Request**
@@ -219,3 +248,27 @@ Función SQL: `hosteleria.marcar_estado_pedido(p_pedido_id uuid, p_nuevo_estado 
 | cancelado       | anulado                                                 |
 
 `metodo_pago`: `online` | `efectivo` | `caja`
+
+### POST /bar/pedido-cobrado ✅
+
+Marca un pedido de caja/efectivo como cobrado manualmente por el camarero. No aplica a
+pedidos `online`, que ya llegan pagados vía Stripe — el botón ni debe mostrarse para esos.
+
+**Request**
+\`\`\`json
+{ "pedido_id": "…" }
+\`\`\`
+
+**Response 200**
+\`\`\`json
+{ "pedido_id": "…", "pagado": true }
+\`\`\`
+
+**Response 4xx — validación**
+\`\`\`json
+{ "error": "un pedido online ya está pagado por Stripe, no se puede marcar como cobrado manualmente" }
+\`\`\`
+También puede devolver "pedido no encontrado" o "este pedido ya estaba marcado como cobrado".
+
+Función SQL: `hosteleria.marcar_pedido_cobrado(p_pedido_id uuid) RETURNS jsonb`
+→ pone `pagado = true`, `pagado_at = now()`.
