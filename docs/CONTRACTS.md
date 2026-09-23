@@ -248,3 +248,50 @@ Función SQL: `hosteleria.marcar_estado_pedido(p_pedido_id uuid, p_nuevo_estado 
 | cancelado       | anulado                                                 |
 
 `metodo_pago`: `online` | `efectivo` | `caja`
+
+### Control de stock ✅
+
+Los productos tienen una columna `stock` (integer, `NULL` = sin controlar, comportamiento
+igual que antes). Se descuenta atómicamente dentro de `crear_pedido` por cada línea —
+si no hay stock suficiente para alguna línea, se aborta todo el pedido (ninguna línea
+se descuenta ni se crea el pedido).
+
+**`GET /bar/carta`** — cambios:
+- Un producto con `stock = 0` no aparece en la carta (igual que `disponible = false`).
+- Cada producto incluye `"solo_pago_presencial": true` cuando `0 < stock <= 3`
+  (umbral fijo por ahora). El frontend debe forzar pago en caja/efectivo para esos
+  productos, para evitar reservar la última unidad con un pago online abandonado.
+
+**GET /bar/productos?establecimiento_id=XXX** ✅ (gestión, no cliente final)
+
+Devuelve TODOS los productos, incluidos agotados/no disponibles.
+\`\`\`json
+{
+  "categorias": [
+    { "id", "nombre", "productos": [
+      { "id", "nombre", "precio_centimos", "disponible", "stock" }
+    ]}
+  ]
+}
+\`\`\`
+Función SQL: `hosteleria.get_productos_gestion(p_establecimiento_id uuid) RETURNS jsonb`
+
+**POST /bar/producto-stock** ✅ (gestión, no cliente final)
+
+**Request**
+\`\`\`json
+{ "producto_id": "…", "stock": 10 }
+\`\`\`
+`stock: null` desactiva el control de stock para ese producto (vuelve a "sin límite").
+
+**Response 200**
+\`\`\`json
+{ "id": "…", "nombre": "…", "stock": 10 }
+\`\`\`
+
+Función SQL: `hosteleria.actualizar_stock_producto(p_producto_id uuid, p_stock integer) RETURNS jsonb`
+
+> **Pendiente de decisión de negocio:** si NFCBARES sustituye por completo el TPV del
+> bar (facturación homologada, inventario real) o convive como canal adicional
+> (tipo Glovo/Uber Eats). Afecta al alcance del control de stock y otras piezas
+> futuras — sin decidir todavía, ver conversación de equipo.
