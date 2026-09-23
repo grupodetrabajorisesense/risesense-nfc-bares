@@ -248,3 +248,27 @@ Función SQL: `hosteleria.marcar_estado_pedido(p_pedido_id uuid, p_nuevo_estado 
 | cancelado       | anulado                                                 |
 
 `metodo_pago`: `online` | `efectivo` | `caja`
+
+### POST /bar/pedido-cobrado ✅
+
+Marca un pedido de caja/efectivo como cobrado manualmente por el camarero. No aplica a
+pedidos `online`, que ya llegan pagados vía Stripe — el botón ni debe mostrarse para esos.
+
+**Request**
+\`\`\`json
+{ "pedido_id": "…" }
+\`\`\`
+
+**Response 200**
+\`\`\`json
+{ "pedido_id": "…", "pagado": true }
+\`\`\`
+
+**Response 4xx — validación**
+\`\`\`json
+{ "error": "un pedido online ya está pagado por Stripe, no se puede marcar como cobrado manualmente" }
+\`\`\`
+También puede devolver "pedido no encontrado" o "este pedido ya estaba marcado como cobrado".
+
+Función SQL: `hosteleria.marcar_pedido_cobrado(p_pedido_id uuid) RETURNS jsonb`
+→ pone `pagado = true`, `pagado_at = now()`.
