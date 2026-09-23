@@ -111,6 +111,7 @@ de Stripe. Co-propiedad Dev 1 (crear_pedido) + Dev 2 (Stripe).
 ```json
 {
   "pedido_id": "…",
+  "numero_pedido": 23,
   "total_centimos": 560,
   "moneda": "EUR",
   "client_secret": "pi_3ABC…_secret_XYZ",
@@ -124,6 +125,7 @@ El frontend usa `client_secret` + `stripe_account_id` para montar el Payment Ele
 ```json
 {
   "pedido_id": "…",
+  "numero_pedido": 23,
   "total_centimos": 560,
   "moneda": "EUR",
   "estado": "nuevo"
@@ -145,7 +147,8 @@ Función SQL:
 **Nota de orden de parámetros:** `p_mesa_id` va en tercera posición (entre `p_items` y
 `p_metodo_pago`). n8n debe llamar a la función con parámetros nombrados o respetar
 exactamente este orden.
-
+- `numero_pedido`: correlativo legible por establecimiento, reiniciado cada día
+  (ej. "Pedido #23" en el ticket). No confundir con `pedido_id` (UUID interno).
 ---
 
 ## 3. POST /stripe/webhook 🚧
@@ -203,6 +206,7 @@ GET /bar/pedidos-activos?establecimiento_id=…
   "pedidos": [
     {
       "pedido_id": "…",
+      "numero_pedido": 23,
       "mesa_numero": "5",
       "estado": "nuevo",
       "pagado": true,
