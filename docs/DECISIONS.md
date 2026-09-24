@@ -32,6 +32,13 @@ pagos online.** Se descartó Managed Payments (merchant of record de Stripe) por
 +3,5 % y porque convierte a Stripe en responsable fiscal, chocando con que el bar sea
 el comercio.
 
+**Un fallo de pago NO cancela el pedido.** En `payment_intent.payment_failed`, el
+pedido se queda en `pendiente_pago` (no se cancela). Motivo: con el Stripe Payment
+Element el cliente puede reintentar con otra tarjeta sobre el MISMO PaymentIntent, que
+luego emitiría un `succeeded`. Si cancelásemos al primer fallo, ese reintento con éxito
+no reactivaría el pedido. En `pendiente_pago` ya no aparece en el panel, así que no
+molesta. La limpieza de pedidos abandonados (expirar `pendiente_pago` viejos) irá aparte.
+
 ---
 
 ## Pendiente de decidir
