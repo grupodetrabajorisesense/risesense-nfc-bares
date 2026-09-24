@@ -155,7 +155,13 @@ exactamente este orden.
 
 Recibe eventos de Stripe. Dueño: Dev 2.
 
-**Verificación:** comprobar la firma con el `webhook secret` antes de procesar nada.
+**Verificación:** por re-consulta a Stripe, no por firma HMAC. El webhook coge el
+`event.id` recibido y lo re-consulta con `GET /v1/events/{id}` (header `Stripe-Account`
+de la cuenta conectada). Si Stripe lo devuelve, el evento es auténtico, y se procesa
+con los datos que devuelve esa consulta — no con los del POST original. Nadie puede
+fabricar un `event.id` que exista de verdad en la cuenta, así que la garantía de
+autenticidad es equivalente a la firma. El `webhook secret` deja de ser crítico para
+el funcionamiento. Motivo completo en `DECISIONS.md`.
 
 **Direct charges + Connect:** los eventos de pago llegan con el campo `account`
 (la cuenta conectada del bar). Configurar el webhook como **Connect webhook** en Stripe,
