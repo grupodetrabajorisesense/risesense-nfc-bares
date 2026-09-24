@@ -308,10 +308,22 @@ Endpoints de gestión (panel del bar), no para el cliente final.
 
 **POST /bar/producto-editar**
 \`\`\`json
-{ "producto_id": "…", "nombre": "…", "precio_centimos": integer }
+{
+  "producto_id": "…",
+  "nombre": "…",
+  "precio_centimos": integer,
+  "descripcion": "…",
+  "imagen_url": "…"
+}
 \`\`\`
-Se manda siempre el par completo (nombre + precio), no parches sueltos.
-Función SQL: `hosteleria.editar_producto(p_producto_id uuid, p_nombre text, p_precio_centimos integer)`
+`nombre` y `precio_centimos` son siempre obligatorios (se manda el par completo).
+`descripcion` e `imagen_url` son opcionales: si el campo no viaja en el body, no se
+toca el valor que ya había en la BBDD (no se borra). `imagen_url` es un link externo
+pegado a mano — sin subida propia de imágenes por ahora.
+
+Función SQL: `hosteleria.editar_producto(p_producto_id uuid, p_nombre text,
+p_precio_centimos integer, p_descripcion text DEFAULT NULL, p_imagen_url text DEFAULT NULL,
+p_actualizar_descripcion boolean DEFAULT false, p_actualizar_imagen boolean DEFAULT false)`
 
 **POST /bar/producto-eliminar**
 \`\`\`json
@@ -342,6 +354,8 @@ Función SQL: `hosteleria.editar_categoria(p_categoria_id uuid, p_nombre text)`
 `descripcion`, `imagen_url` (NULL) y `orden` (0) se rellenan por defecto — el panel
 todavía no los pide en el formulario. Si en el futuro el panel los añade, la función
 ya está preparada para recibirlos sin cambios.
+Ahora también acepta `descripcion` e `imagen_url` (opcionales, `null` si no se mandan).
+`imagen_url` es un link externo pegado a mano, no subida propia.
 
 > **Nota de implementación:** el nodo Postgres de n8n serializa `null` de JavaScript
 > como el string literal `"null"` dentro del campo de Query Parameters, en vez de un
