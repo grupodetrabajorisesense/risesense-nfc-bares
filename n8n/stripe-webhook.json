@@ -1,0 +1,268 @@
+{
+  "name": "stripe-webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stripe/webhook",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4de4b881-6429-4508-b783-36a196ad7aaf",
+      "name": "Webhook",
+      "webhookId": "e79a2c22-c50a-4696-bf4a-f787128791b6"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "payment_intent.succeeded",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "202dbccf-bf8f-454c-8711-1786338f7f98"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "succeeded"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2dea34af-1841-4e08-ac87-0e04b24d4f49",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "payment_intent.payment_failed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "failed"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        -16
+      ],
+      "id": "d1a7df3c-ee1b-4344-9d6e-355b6481ccca",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "  SELECT hosteleria.marcar_pedido_pagado($1, $2, $3) AS resultado",
+        "options": {
+          "queryReplacement": "={{ $json.id }}, {{ $json.data.object.metadata.pedido_id }}, {{ $json.data.object.id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        784,
+        -144
+      ],
+      "id": "b04406f7-bde2-4560-8b20-b731afe9dcd2",
+      "name": "marcar_pedido_pagado",
+      "credentials": {
+        "postgres": {
+          "id": "H9tts90quNJGsgd1",
+          "name": "Hosteleria_NFC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "  SELECT hosteleria.marcar_pago_fallido($1, $2) AS resultado",
+        "options": {
+          "queryReplacement": "={{ $json.id }}, {{ $json.data.object.metadata.pedido_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        784,
+        0
+      ],
+      "id": "550daae3-81c0-4ac6-9269-3181ea916190",
+      "name": "marcar_pago_fallido",
+      "credentials": {
+        "postgres": {
+          "id": "H9tts90quNJGsgd1",
+          "name": "Hosteleria_NFC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"received\": true }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1104,
+        160
+      ],
+      "id": "d52aa07e-bb77-4a0a-9084-c009c8ae74ac",
+      "name": "Respond 200"
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://api.stripe.com/v1/events/' + $json.body.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Stripe-Account",
+              "value": "={{ $json.body.account }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        256,
+        0
+      ],
+      "id": "0c7f0577-cc12-4382-ae7e-32b770fb0819",
+      "name": "HTTP Request (verificar)",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "dWJ5dqAWEVVWF2o2",
+          "name": "Stripe plataforma (test)"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (verificar)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "marcar_pedido_pagado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "marcar_pago_fallido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "marcar_pago_fallido": {
+      "main": [
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "marcar_pedido_pagado": {
+      "main": [
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request (verificar)": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "43cf2a12-0333-4b1e-8ad9-d1b6c88d3608",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9eaa5babfc52f255436bf117de7c7c4d7bf44683f75046103f6d0cbd55799561"
+  },
+  "id": "JrfosOI0fGRXvHdp",
+  "tags": []
+}
