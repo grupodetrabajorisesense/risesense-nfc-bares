@@ -295,3 +295,43 @@ Función SQL: `hosteleria.actualizar_stock_producto(p_producto_id uuid, p_stock 
 > bar (facturación homologada, inventario real) o convive como canal adicional
 > (tipo Glovo/Uber Eats). Afecta al alcance del control de stock y otras piezas
 > futuras — sin decidir todavía, ver conversación de equipo.
+
+### Gestión de productos y categorías ✅ (parcial — falta producto-crear)
+
+Endpoints de gestión (panel del bar), no para el cliente final.
+
+**POST /bar/producto-editar**
+\`\`\`json
+{ "producto_id": "…", "nombre": "…", "precio_centimos": integer }
+\`\`\`
+Se manda siempre el par completo (nombre + precio), no parches sueltos.
+Función SQL: `hosteleria.editar_producto(p_producto_id uuid, p_nombre text, p_precio_centimos integer)`
+
+**POST /bar/producto-eliminar**
+\`\`\`json
+{ "producto_id": "…" }
+\`\`\`
+Borrado lógico: pone `eliminado = true`. Nunca DELETE físico — `pedido_lineas` guarda
+copia congelada de nombre/precio de cada línea vendida, y un DELETE real rompería esa
+trazabilidad. Con `eliminado = true` desaparece de la carta y de la gestión, sin tocar
+el histórico.
+
+`eliminado` es independiente de `disponible` (interruptor manual de "cerrado hoy") y
+de `stock` (control de unidades). `get_carta` (cliente) filtra por los tres a la vez;
+`GET /bar/productos` (gestión) filtra solo por `eliminado = false`, para que el
+camarero siga viendo y pudiendo reactivar cualquier producto agotado o cerrado.
+
+Función SQL: `hosteleria.eliminar_producto(p_producto_id uuid)`
+
+**POST /bar/categoria-editar**
+\`\`\`json
+{ "categoria_id": "…", "nombre": "…" }
+\`\`\`
+Función SQL: `hosteleria.editar_categoria(p_categoria_id uuid, p_nombre text)`
+
+**POST /bar/producto-crear** 🚧 pendiente de confirmar `establecimiento_id` en el body con Dev 3
+
+**POST /bar/categoria-crear** ✅ (reutiliza `crear_categoria` ya existente)
+\`\`\`json
+{ "establecimiento_id": "…", "nombre": "…" }
+\`\`\`
