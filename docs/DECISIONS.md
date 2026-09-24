@@ -39,6 +39,15 @@ luego emitiría un `succeeded`. Si cancelásemos al primer fallo, ese reintento 
 no reactivaría el pedido. En `pendiente_pago` ya no aparece en el panel, así que no
 molesta. La limpieza de pedidos abandonados (expirar `pendiente_pago` viejos) irá aparte.
 
+**Verificación del webhook de Stripe: por re-consulta, no por firma HMAC.** CONTRACTS
+pedía comprobar la firma con el webhook secret. En n8n obtener el body crudo byte a byte
+(necesario para el HMAC) es frágil y dependiente de versión. En su lugar, el webhook coge
+el `event.id` recibido y lo re-consulta a Stripe (`GET /v1/events/{id}` con el header
+`Stripe-Account` de la cuenta conectada). Si Stripe lo devuelve, el evento es auténtico y
+se procesa con los datos que devuelve Stripe (no con los del POST). Nadie puede fabricar
+un `event.id` que exista en la cuenta, así que la garantía de autenticidad es equivalente.
+El `whsec` deja de ser crítico para el funcionamiento.
+
 ---
 
 ## Pendiente de decidir
