@@ -347,3 +347,19 @@ ya está preparada para recibirlos sin cambios.
 \`\`\`json
 { "establecimiento_id": "…", "nombre": "…" }
 \`\`\`
+
+**POST /bar/categoria-eliminar**
+\`\`\`json
+{ "categoria_id": "…" }
+\`\`\`
+DELETE físico de la fila (a diferencia de `eliminar_producto`, aquí sí es seguro: no
+hay `pedido_lineas` que referencien una categoría directamente). Se rechaza si la
+categoría tiene algún producto con `eliminado = false` — un producto ya eliminado
+lógicamente no cuenta como bloqueante.
+
+Función SQL: `hosteleria.eliminar_categoria(p_categoria_id uuid)`
+
+> **Corrección de datos (24/09/2026):** dos productos de prueba tenían el string
+> literal `"null"` guardado en `descripcion`/`imagen_url` en vez de `NULL` real
+> (efecto del bug de serialización de n8n, antes del fix con `NULLIF`). Corregido
+> con un `UPDATE` puntual; no afecta a datos creados después del fix.
