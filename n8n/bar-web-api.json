@@ -726,7 +726,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT hosteleria.actualizar_stock_producto($1, $2) AS resultado",
+        "query": "SELECT hosteleria.actualizar_stock_producto(\n  $1::uuid,\n  NULLIF($2, 'null')::integer\n) AS resultado",
         "options": {
           "queryReplacement": "={{ $json.body.producto_id }}, {{ $json.body.stock }}"
         }
@@ -1402,6 +1402,106 @@
       ],
       "id": "558af93e-29ac-4eb9-83d9-4bc8a9e8bac6",
       "name": "Respond to Webhook26"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bar/categoria-eliminar",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -32,
+        4256
+      ],
+      "id": "063e9690-d649-4559-8b6f-0d9fdaa8e85d",
+      "name": "Webhook12",
+      "webhookId": "99f91b77-401a-4cbb-b480-965ab23d12c5"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT hosteleria.eliminar_categoria($1::uuid) AS resultado",
+        "options": {
+          "queryReplacement": "={{ $json.body.categoria_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        208,
+        4256
+      ],
+      "id": "758d0e0d-f30b-4f55-8eaf-d2e9a3fce5a2",
+      "name": "Execute a SQL query12",
+      "credentials": {
+        "postgres": {
+          "id": "H9tts90quNJGsgd1",
+          "name": "Hosteleria_NFC"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.resultado }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        464,
+        4208
+      ],
+      "id": "62a14637-0673-47af-a2e8-a0b878b6b6db",
+      "name": "Respond to Webhook27"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": $json.message } }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        4368
+      ],
+      "id": "b997f7c0-529f-4263-9a45-ae3186f1c557",
+      "name": "Respond to Webhook28"
     }
   ],
   "pinData": {},
@@ -1811,6 +1911,35 @@
           }
         ]
       ]
+    },
+    "Webhook12": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query12": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook27",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook28",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -1818,7 +1947,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "b84b7461-4af7-413d-9a43-f39b73ddd351",
+  "versionId": "0a08f926-be6b-4600-b2e6-ac40327c2843",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "9eaa5babfc52f255436bf117de7c7c4d7bf44683f75046103f6d0cbd55799561"
