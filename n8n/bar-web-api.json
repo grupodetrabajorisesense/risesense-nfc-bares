@@ -603,6 +603,305 @@
       ],
       "id": "b2df217a-d06b-441a-b389-9067244bbd6e",
       "name": "Respond to Webhook10"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bar/pedido-cobrado",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        1488
+      ],
+      "id": "0fc2bac5-b092-4873-a52d-3f7c58e12c07",
+      "name": "Webhook4",
+      "webhookId": "99f91b77-401a-4cbb-b480-965ab23d12c5"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT hosteleria.marcar_pedido_cobrado($1) AS resultado",
+        "options": {
+          "queryReplacement": "={{ $json.body.pedido_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        1488
+      ],
+      "id": "dbd4b454-9b51-449f-b673-0588db7a6136",
+      "name": "Execute a SQL query4",
+      "credentials": {
+        "postgres": {
+          "id": "H9tts90quNJGsgd1",
+          "name": "Hosteleria_NFC"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.resultado }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        480,
+        1440
+      ],
+      "id": "e53cd1ed-1fc9-4b90-aa35-9d1e5ff1447f",
+      "name": "Respond to Webhook11"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": $json.message } }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        480,
+        1552
+      ],
+      "id": "0c6f2769-4fdb-4f26-a07e-961c7cb54ae3",
+      "name": "Respond to Webhook12"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bar/producto-stock",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        1776
+      ],
+      "id": "06d3413e-78d4-4490-a413-fc3ad740634a",
+      "name": "Webhook5",
+      "webhookId": "99f91b77-401a-4cbb-b480-965ab23d12c5"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT hosteleria.actualizar_stock_producto($1, $2) AS resultado",
+        "options": {
+          "queryReplacement": "={{ $json.body.producto_id }}, {{ $json.body.stock }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        1776
+      ],
+      "id": "2a0267ab-bee2-4966-9a6c-e28f2130ae94",
+      "name": "Execute a SQL query5",
+      "credentials": {
+        "postgres": {
+          "id": "H9tts90quNJGsgd1",
+          "name": "Hosteleria_NFC"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.resultado }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        480,
+        1728
+      ],
+      "id": "87bec00c-efe4-4b2d-bc5f-652a5ff1734f",
+      "name": "Respond to Webhook13"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": $json.message } }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        464,
+        1888
+      ],
+      "id": "609e2994-48b2-4487-86a2-8a1025e75bfc",
+      "name": "Respond to Webhook14"
+    },
+    {
+      "parameters": {
+        "path": "bar/productos",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        2160
+      ],
+      "id": "a2403638-f52e-46ad-b196-f7a34ce2fb35",
+      "name": "Webhook6",
+      "webhookId": "99f91b77-401a-4cbb-b480-965ab23d12c5"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT hosteleria.get_productos_gestion($1) AS resultado",
+        "options": {
+          "queryReplacement": "={{ $json.query.establecimiento_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        2160
+      ],
+      "id": "63397a73-8da3-4e54-b96d-766cd22c5255",
+      "name": "Execute a SQL query6",
+      "credentials": {
+        "postgres": {
+          "id": "H9tts90quNJGsgd1",
+          "name": "Hosteleria_NFC"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.resultado }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        480,
+        2112
+      ],
+      "id": "28669544-44b6-4b26-8824-8a7005f70cdd",
+      "name": "Respond to Webhook15"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": $json.message } }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        464,
+        2272
+      ],
+      "id": "4fb7de74-7a4e-4a6f-8be5-c47b1f155c72",
+      "name": "Respond to Webhook16"
     }
   ],
   "pinData": {},
@@ -780,6 +1079,93 @@
           }
         ]
       ]
+    },
+    "Webhook4": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query4": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook5": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query5": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook13",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook6": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query6": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook15",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -787,7 +1173,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "eb0494b2-202a-4f27-a92c-59765030c3ca",
+  "versionId": "24af02a3-859d-4a5f-989a-61fca10010c3",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "9eaa5babfc52f255436bf117de7c7c4d7bf44683f75046103f6d0cbd55799561"
