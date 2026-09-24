@@ -925,9 +925,9 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT hosteleria.editar_producto($1, $2, $3) AS resultado",
+        "query": "SELECT hosteleria.editar_producto(\n  $1::uuid, $2::text, $3::integer, $4::text, $5::text, $6::boolean, $7::boolean\n) AS resultado",
         "options": {
-          "queryReplacement": "={{ $json.body.producto_id }}, {{ $json.body.nombre }}, {{ $json.body.precio_centimos }}"
+          "queryReplacement": "={{ $json.body.producto_id }}, {{ $json.body.nombre }}, {{ $json.body.precio_centimos }}, {{ $json.body.descripcion ?? null }}, {{ $json.body.imagen_url ?? null }}, {{ $json.body.descripcion !== undefined }}, {{ $json.body.imagen_url !== undefined }}"
         }
       },
       "type": "n8n-nodes-base.postgres",
@@ -1947,7 +1947,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "0a08f926-be6b-4600-b2e6-ac40327c2843",
+  "versionId": "7875578c-4f07-4aa0-a382-fca762134a35",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "9eaa5babfc52f255436bf117de7c7c4d7bf44683f75046103f6d0cbd55799561"
