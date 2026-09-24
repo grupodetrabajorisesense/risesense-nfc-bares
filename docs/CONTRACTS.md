@@ -329,7 +329,19 @@ Función SQL: `hosteleria.eliminar_producto(p_producto_id uuid)`
 \`\`\`
 Función SQL: `hosteleria.editar_categoria(p_categoria_id uuid, p_nombre text)`
 
-**POST /bar/producto-crear** 🚧 pendiente de confirmar `establecimiento_id` en el body con Dev 3
+**POST /bar/producto-crear** ✅ (reutiliza `crear_producto` ya existente)
+\`\`\`json
+{ "establecimiento_id": "…", "categoria_id": "…", "nombre": "…", "precio_centimos": integer }
+\`\`\`
+`descripcion`, `imagen_url` (NULL) y `orden` (0) se rellenan por defecto — el panel
+todavía no los pide en el formulario. Si en el futuro el panel los añade, la función
+ya está preparada para recibirlos sin cambios.
+
+> **Nota de implementación:** el nodo Postgres de n8n serializa `null` de JavaScript
+> como el string literal `"null"` dentro del campo de Query Parameters, en vez de un
+> valor nulo real. Se resuelve con `NULLIF($n, 'null')::text` en la query SQL para
+> los parámetros opcionales. Aplicar el mismo patrón en futuros webhooks que acepten
+> valores opcionales por defecto a NULL.
 
 **POST /bar/categoria-crear** ✅ (reutiliza `crear_categoria` ya existente)
 \`\`\`json
