@@ -383,3 +383,41 @@ Función SQL: `hosteleria.eliminar_categoria(p_categoria_id uuid)`
 > literal `"null"` guardado en `descripcion`/`imagen_url` en vez de `NULL` real
 > (efecto del bug de serialización de n8n, antes del fix con `NULLIF`). Corregido
 > con un `UPDATE` puntual; no afecta a datos creados después del fix.
+
+En `GET /bar/carta`:
+
+```markdown
+Cada producto con tamaños incluye `variantes`: `[{ id, nombre, precio_centimos, solo_pago_presencial }]`.
+Si no tiene variantes, el campo se omite. Las variantes con `stock = 0` no salen, y si todas
+están agotadas el producto tampoco sale. El frontend muestra "Desde X,XX €" con el mínimo.
+```
+
+En `GET /bar/productos`:
+
+```markdown
+Cada producto incluye siempre `variantes` (array vacío si no tiene): `[{ id, nombre, precio_centimos, stock }]`,
+con el `stock` real (`null` = sin límite).
+```
+
+Y una sección nueva:
+
+```markdown
+### Variantes de producto ✅ (gestión)
+
+**POST /bar/producto-variante-crear** `{ "producto_id", "nombre", "precio_centimos" }` → `{ id, producto_id, nombre, precio_centimos, stock }`
+**POST /bar/producto-variante-editar** `{ "variante_id", "nombre", "precio_centimos" }`
+**POST /bar/producto-variante-stock** `{ "variante_id", "stock": integer | null }` (`null` = sin límite)
+**POST /bar/producto-variante-eliminar** `{ "variante_id" }` — borrado lógico (`eliminado = true`), no se borran
+filas que pueden estar referenciadas por `pedido_lineas`.
+
+Funciones SQL: `crear_variante`, `editar_variante`, `actualizar_stock_variante`, `eliminar_variante`.
+```
+
+Antes de exportar el JSON, restaura los datos de demo (la Pinta sigue con stock 2 y el Tercio con 0 de las pruebas):
+
+```sql
+UPDATE hosteleria.producto_variantes SET stock = NULL
+WHERE producto_id = '91473644-6c44-48b1-8163-892f05175ac9' AND eliminado = false;
+```
+
+Luego sigue con los pasos de Git que te dejé: los archivos `030` a `033` (con la `031` corregida), el JSON del workflow, `CONTRACTS.md`, commit y PR con base `develop`. Avísame cuando esté fusionado.
