@@ -549,7 +549,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ {\n  \"pedido_id\": $json.pedido.pedido_id,\n  \"total_centimos\": $json.pedido.total_centimos,\n  \"moneda\": $json.pedido.moneda,\n  \"estado\": \"nuevo\"\n} }}",
+        "responseBody": "={{ {\n  \"pedido_id\": $json.pedido.pedido_id,\n  \"numero_pedido\": $json.pedido.numero_pedido,\n  \"total_centimos\": $json.pedido.total_centimos,\n  \"moneda\": $json.pedido.moneda,\n  \"estado\": \"nuevo\"\n} }}",
         "options": {
           "responseCode": 200,
           "responseHeaders": {
@@ -2463,7 +2463,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "1eddd032-128c-4127-a555-10919ea6ea73",
+  "versionId": "c645f50c-4b0c-4f6b-9cd8-bf359faa4ff7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "9eaa5babfc52f255436bf117de7c7c4d7bf44683f75046103f6d0cbd55799561"
