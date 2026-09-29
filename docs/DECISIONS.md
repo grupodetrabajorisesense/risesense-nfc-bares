@@ -67,3 +67,10 @@ no técnica. Contexto para decidir:
 
 **Auth del panel del bar.** El panel y `/bar/pedidos-activos` deben ir tras login antes
 de publicarse. Definir mecanismo (reutilizar patrón de login de otros paneles RiseSense).
+**PIN de acceso al panel: texto plano, protegido solo por límite de intentos, no por hash.**
+Un PIN de 6 dígitos (1M combinaciones) hasheado con sal no se puede buscar por índice sin
+recorrer todas las filas, así que se guarda en claro en `establecimientos.pin_acceso`,
+sin GRANT a `bar_web`. Mitigación: máximo 10 intentos fallidos en 15 minutos por IP
+(tabla `panel_login_intentos`), no por establecimiento — así no se puede tumbar el acceso
+de un bar agotando solo su cuota. Riesgo aceptado: no protege contra fuerza bruta
+distribuida entre muchas IPs. Retomar si el panel gana peso.
