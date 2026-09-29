@@ -421,3 +421,28 @@ WHERE producto_id = '91473644-6c44-48b1-8163-892f05175ac9' AND eliminado = false
 ```
 
 Luego sigue con los pasos de Git que te dejé: los archivos `030` a `033` (con la `031` corregida), el JSON del workflow, `CONTRACTS.md`, commit y PR con base `develop`. Avísame cuando esté fusionado.
+### Login del panel (PIN) ✅
+
+**POST /bar/panel-login**
+
+Request: `{ "pin": "482913" }`
+Response 200: `{ "establecimiento_id": "…", "nombre": "…" }`
+Response 401: `{ "error": "PIN incorrecto" }` o `{ "error": "demasiados intentos, inténtalo de nuevo en unos minutos" }`
+
+Función SQL: `hosteleria.panel_login(p_pin text, p_ip text) RETURNS jsonb`. No lanza
+excepción para PIN incorrecto: el error va dentro del jsonb devuelto, y es n8n quien
+traduce eso a 401. Límite antifuerza-bruta: 10 fallos en 15 minutos desde la misma IP
+(tabla `panel_login_intentos`), no por establecimiento.
+
+**POST /bar/panel-pin-cambiar**
+
+Request: `{ "establecimiento_id": "…", "pin_actual": "…", "pin_nuevo": "…" }`
+Response 200: `{ "ok": true }`
+Response 401: `{ "error": "PIN actual incorrecto" }`, o `{ "error": "el PIN nuevo debe
+tener 6 dígitos" }` / `{ "error": "ese PIN ya está en uso, elige otro" }` (400 según lo
+que decidáis para estos dos últimos, ahora mismo van igual que el resto por el mismo IF).
+
+Función SQL: `hosteleria.panel_pin_cambiar(p_establecimiento_id uuid, p_pin_actual text,
+p_pin_nuevo text) RETURNS jsonb`.
+
+`crear_establecimiento` genera el PIN automáticamente (6 dígitos, único, sin colisión).

@@ -1902,6 +1902,276 @@
       ],
       "id": "b5824679-dd1b-4178-af9c-63f7c588dfd9",
       "name": "Respond to Webhook36"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bar/panel-login",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        6080
+      ],
+      "id": "7ff1a3d5-3129-40d0-bc4a-16ff94b5b59a",
+      "name": "Webhook17",
+      "webhookId": "99f91b77-401a-4cbb-b480-965ab23d12c5"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT hosteleria.panel_login($1::text, $2::text) AS resultado",
+        "options": {
+          "queryReplacement": "={{ $json.body.pin }}, {{ $json.headers['x-forwarded-for'] ?? $json.headers['x-real-ip'] ?? 'desconocida' }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        256,
+        6080
+      ],
+      "id": "cb779e6d-c21b-4b55-940e-ede38eef6b56",
+      "name": "Execute a SQL query17",
+      "credentials": {
+        "postgres": {
+          "id": "H9tts90quNJGsgd1",
+          "name": "Hosteleria_NFC"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c8a97ac1-7963-4028-8624-2ad2e80127ba",
+              "leftValue": "={{ $json.resultado.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        464,
+        6080
+      ],
+      "id": "8216b11a-44cc-43f8-bf62-d73bf803fd05",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.resultado }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        736,
+        6016
+      ],
+      "id": "eafb2ebd-de95-4b53-8be1-8884852fb694",
+      "name": "Respond to Webhook37"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": $json.resultado.error } }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        720,
+        6176
+      ],
+      "id": "4751f220-5e12-4b49-992a-ea9752eb1fc4",
+      "name": "Respond to Webhook38"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bar/panel-pin-cambiar",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        6464
+      ],
+      "id": "a543e986-5563-47d1-a792-01ff22a0309c",
+      "name": "Webhook18",
+      "webhookId": "99f91b77-401a-4cbb-b480-965ab23d12c5"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT hosteleria.panel_pin_cambiar($1::uuid, $2::text, $3::text) AS resultado",
+        "options": {
+          "queryReplacement": "={{ $json.body.establecimiento_id }}, {{ $json.body.pin_actual }}, {{ $json.body.pin_nuevo }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        272,
+        6464
+      ],
+      "id": "98f43701-a405-47b7-a60b-437dd698da2d",
+      "name": "Execute a SQL query18",
+      "credentials": {
+        "postgres": {
+          "id": "H9tts90quNJGsgd1",
+          "name": "Hosteleria_NFC"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c8a97ac1-7963-4028-8624-2ad2e80127ba",
+              "leftValue": "={{ $json.resultado.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        6464
+      ],
+      "id": "cf210695-eedd-4bcc-8097-35c4be8b02e5",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.resultado }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        752,
+        6400
+      ],
+      "id": "948a0724-17a1-439b-a6fd-0544782312da",
+      "name": "Respond to Webhook39"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": $json.resultado.error } }}",
+        "options": {
+          "responseCode": 401,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        736,
+        6560
+      ],
+      "id": "6428137e-c4bf-4fc4-9994-49b829549993",
+      "name": "Respond to Webhook40"
     }
   ],
   "pinData": {},
@@ -2456,6 +2726,87 @@
           }
         ]
       ]
+    },
+    "Webhook17": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query17",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query17": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook37",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook38",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook18": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query18",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query18": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook39",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook40",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -2463,7 +2814,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "c645f50c-4b0c-4f6b-9cd8-bf359faa4ff7",
+  "versionId": "524f7cb6-7136-4d2e-bb53-b219cf03c112",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "9eaa5babfc52f255436bf117de7c7c4d7bf44683f75046103f6d0cbd55799561"
